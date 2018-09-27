@@ -1,4 +1,4 @@
-before-script:
+before_script:
   - echo "*** Setup access credentials"
   - mkdir ~/.aws
   - echo "${AWS_config}"      > ~/.aws/config
