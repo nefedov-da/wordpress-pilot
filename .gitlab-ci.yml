@@ -1,0 +1,20 @@
+build:
+  stage: build
+  when: manual
+  image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
+  targs:
+    - worker
+  script:
+    - echo "*** Prepare a file(s)"
+    - echo "${WP_CONFIG}" > ./wp-config.php
+    - tar cf ./docker.tar ./ --exclude=docker.tar
+    - echo "*** Build a image"
+    - docker build -t "${IMAGE}" . 
+    - echo "*** Push a image to registry"
+    - mkdir ~/.aws
+    - echo "${AWS_config}"      > ~/.aws/config
+    - echo "${AWS_credentials}" > ~/.aws/credentials
+    - '$(aws ecr get-login --no-include-email)'
+    - docker push "${IMAGE}"
+
+    
