@@ -27,4 +27,4 @@ deploy-ECS:
   tags:
     - worker
   script:
-    ./ecs-deploy --use-latest-task-def --region "${ECS_REGION}" --cluster "${ECS_CLUSTER}"  --service-name "${ECS_SERVICE}" --image "${IMAGE}"
+    ecs-deploy --use-latest-task-def --region "${ECS_REGION}" --cluster "${ECS_CLUSTER}"  --service-name "${ECS_SERVICE}" --image "${IMAGE}"
