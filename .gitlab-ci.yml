@@ -5,16 +5,17 @@ build:
   tags:
     - worker
   script:
+    - echo "*** Setup access credentials"
+    - mkdir ~/.aws
+    - echo "${AWS_config}"      > ~/.aws/config
+    - echo "${AWS_credentials}" > ~/.aws/credentials
+    - '$(aws ecr get-login --no-include-email)'
     - echo "*** Prepare a file(s)"
     - echo "${WP_CONFIG}" > ./wp-config.php
     - tar cf ./docker.tar ./ --exclude=docker.tar
     - echo "*** Build a image"
     - docker build -t "${IMAGE}" . 
     - echo "*** Push a image to registry"
-    - mkdir ~/.aws
-    - echo "${AWS_config}"      > ~/.aws/config
-    - echo "${AWS_credentials}" > ~/.aws/credentials
-    - '$(aws ecr get-login --no-include-email)'
     - docker push "${IMAGE}"
 
     
