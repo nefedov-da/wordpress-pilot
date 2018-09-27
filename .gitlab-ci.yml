@@ -2,7 +2,7 @@ build:
   stage: build
   when: manual
   image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
-  targs:
+  tags:
     - worker
   script:
     - echo "*** Prepare a file(s)"
