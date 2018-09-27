@@ -1,3 +1,10 @@
+before-script:
+  - echo "*** Setup access credentials"
+  - mkdir ~/.aws
+  - echo "${AWS_config}"      > ~/.aws/config
+  - echo "${AWS_credentials}" > ~/.aws/credentials
+  - '$(aws ecr get-login --no-include-email)'  
+
 build:
   stage: build
   when: manual
@@ -5,11 +12,6 @@ build:
   tags:
     - worker
   script:
-    - echo "*** Setup access credentials"
-    - mkdir ~/.aws
-    - echo "${AWS_config}"      > ~/.aws/config
-    - echo "${AWS_credentials}" > ~/.aws/credentials
-    - '$(aws ecr get-login --no-include-email)'
     - echo "*** Prepare a file(s)"
     - echo "${WP_CONFIG}" > ./wp-config.php
     - tar cf ./docker.tar ./ --exclude=docker.tar
@@ -18,4 +20,11 @@ build:
     - echo "*** Push a image to registry"
     - docker push "${IMAGE}"
 
-    
+deploy-ECS:
+  stage: deploy
+  when: manual
+  image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
+  tags:
+    - worker
+  script:
+    ./ecs-deploy --use-latest-task-def --region "${ECS_REGION}" --cluster "${ECS_CLUSTER}"  --service-name "${ECS_SERVICE}" --image "${IMAGE}"
