@@ -1,3 +1,6 @@
+variables:
+#  CI_DEBUG_TRACE: "true"
+
 before_script:
   - echo "*** Setup access credentials"
   - mkdir ~/.aws
