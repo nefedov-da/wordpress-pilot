@@ -1,5 +1,5 @@
 variables:
-  CI_DEBUG_TRACE: "true"
+#  CI_DEBUG_TRACE: "true"
 
 before_script:
   - echo "*** Setup access credentials"
