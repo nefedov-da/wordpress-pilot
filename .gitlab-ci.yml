@@ -31,4 +31,4 @@ deploy-ECS:
   tags:
     - worker
   script:
-    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --timeout 300
+    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --timeout 600
