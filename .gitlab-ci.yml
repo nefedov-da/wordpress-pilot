@@ -17,7 +17,6 @@ build:
   script:
     - echo "*** Prepare a file(s)"
     - echo "${WP_CONFIG}" > ./wp-config.php
-    - cat ./wp-config.php
     - tar cf ./docker.tar ./ --exclude=docker.tar
     - echo "*** Build a image"
     - docker build -t "${IMAGE}" . 
