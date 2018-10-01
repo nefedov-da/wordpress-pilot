@@ -47,7 +47,7 @@ deploy-ECS:
   tags:
     - worker
   script:
-    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${ECS_REGION}" --timeout 600
+    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${AWS_REGION}" --timeout 600
 
 remove-ECS:
   stage: eol
