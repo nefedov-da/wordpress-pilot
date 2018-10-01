@@ -12,7 +12,7 @@ before_script:
   - mkdir ~/.aws
   - echo "${AWS_config}"      > ~/.aws/config
   - echo "${AWS_credentials}" > ~/.aws/credentials
-  - '$(aws ecr get-login --no-include-email)'  
+  - '$(aws ecr get-login --no-include-email --region "${ECS_REGION}")'  
 
 backup-mysql:
   stage: backup
@@ -47,7 +47,7 @@ deploy-ECS:
   tags:
     - worker
   script:
-    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --timeout 600
+    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${ECS_REGION}" --timeout 600
 
 remove-ECS:
   stage: eol
