@@ -40,4 +40,5 @@ backup-mysql:
   tags:
     - worker
   script:
-    - date
+    - echo "*** Do a datanbase backup"
+    - mysqldump --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_BASE | mysqldump --default-character-set=binary -h$WP_DB_HOST_BACKUP -u$WP_DB_USER_BACKUP -p$WP_DB_PASSWORD_BACKUP -D $WP_DB_BASE_BACKUP
