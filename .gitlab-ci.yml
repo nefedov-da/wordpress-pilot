@@ -57,8 +57,8 @@ remove-ECS:
     - worker
   script:
     - echo "*** Stop a service"
-    - TASK_ARN=`aws ecs list-tasks --cluster "${ECS_CLUSTER}" --region "${ECS_REGION}" | jq -r .taskArns[0]`
+    - TASK_ARN=`aws ecs list-tasks --cluster "${ECS_CLUSTER}" --region "${AWS_REGION}" | jq -r .taskArns[0]`
     - echo "*** Stop task ${TASK_ARN}"
     - aws ecs stop-task --cluster "${ECS_CLUSTER}" --region "${ECS_REGION}" --task "${TASK_ARN}"
     - echo "*** Remove service ${ECS_SERVICE}"
-    - aws ecs delete-service --cluster "${ECS_CLUSTER}" --region "${ECS_REGION}" --service "${ECS_SERVICE}"
+    - aws ecs delete-service --cluster "${ECS_CLUSTER}" --region "${AWS_REGION}" --service "${ECS_SERVICE}"
