@@ -1,12 +1,28 @@
 variables:
 #  CI_DEBUG_TRACE: "true"
 
+stages:
+  - backup
+  - build
+  - deploy
+  - eol
+
 before_script:
   - echo "*** Setup access credentials"
   - mkdir ~/.aws
   - echo "${AWS_config}"      > ~/.aws/config
   - echo "${AWS_credentials}" > ~/.aws/credentials
   - '$(aws ecr get-login --no-include-email)'  
+
+backup-mysql:
+  stage: backup
+  when: manual
+  image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
+  tags:
+    - worker
+  script:
+    - echo "*** Do a datanbase backup"
+    - mysqldump --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME | mysql --default-character-set=binary -h$WP_DB_HOST_BACKUP -u$WP_DB_USER_BACKUP -p$WP_DB_PASSWORD_BACKUP -D $WP_DB_NAME_BACKUP
 
 build:
   stage: build
@@ -33,12 +49,16 @@ deploy-ECS:
   script:
     ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --timeout 600
 
-backup-mysql:
-  stage: build
+remove-ECS:
+  stage: eol
   when: manual
   image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
   tags:
     - worker
   script:
-    - echo "*** Do a datanbase backup"
-    - mysqldump --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME | mysql --default-character-set=binary -h$WP_DB_HOST_BACKUP -u$WP_DB_USER_BACKUP -p$WP_DB_PASSWORD_BACKUP -D $WP_DB_NAME_BACKUP
+    - echo "*** Stop a service"
+    - TASK_ARN=`aws ecs list-tasks --cluster "${ECS_CLUSTER}" --region "${ECS_REGION}" | jq -r .taskArns[0]`
+    - echo "*** Stop task ${TASK_ARN}"
+    - aws ecs stop-task --cluster "${ECS_CLUSTER}" --region "${ECS_REGION}" --task "${TASK_ARN}"
+    - echo "*** Remove service ${ECS_SERVICE}"
+    - aws ecs delete-service --cluster "${ECS_CLUSTER}" --region "${ECS_REGION}" --service "${ECS_SERVICE}"
