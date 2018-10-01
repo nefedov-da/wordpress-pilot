@@ -12,7 +12,7 @@ before_script:
   - mkdir ~/.aws
   - echo "${AWS_config}"      > ~/.aws/config
   - echo "${AWS_credentials}" > ~/.aws/credentials
-  - '$(aws ecr get-login --no-include-email --region "${ECS_REGION}")'  
+  - '$(aws ecr get-login --no-include-email)'  
 
 backup-mysql:
   stage: backup
