@@ -32,7 +32,7 @@ restore-mysql:
     - worker
   script:
     - echo "*** Do a datanbase rollback"
-    - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz ./
+    - aws s3 cp ${DB_BACKUP_PATH}${CI_COMMIT_SHA}.sql.gz ./
     - cat ./${CI_COMMIT_SHA}.sql.gz | grunzip | mysql --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME
     
 build:
