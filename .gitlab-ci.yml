@@ -24,6 +24,17 @@ backup-mysql:
     - mysqldump --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME | gzip > ./${CI_COMMIT_SHA}.sql.gz
     - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz ${DB_BACKUP_PATH}
 
+restore-mysql:
+  stage: backup
+  when: manual
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
+  tags:
+    - worker
+  script:
+    - echo "*** Do a datanbase rollback"
+    - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz ${DB_BACKUP_PATH}
+    - cat ./${CI_COMMIT_SHA}.sql.gz | grunzip | mysql --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME
+    
 build:
   stage: build
   when: manual
