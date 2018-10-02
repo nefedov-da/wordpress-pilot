@@ -16,7 +16,7 @@ before_script:
 backup-mysql:
   stage: backup
   when: manual
-  image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
   script:
@@ -26,7 +26,7 @@ backup-mysql:
 build:
   stage: build
   when: manual
-  image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
   script:
@@ -38,11 +38,12 @@ build:
     - docker build -t "${IMAGE}" . 
     - echo "*** Push a image to registry"
     - docker push "${IMAGE}"
+    - docker rmi "${IMAGE}"
 
 deploy-ECS:
   stage: deploy
   when: manual
-  image: 422207425354.dkr.ecr.ap-southeast-2.amazonaws.com/docker-aws:latest
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
   script:
