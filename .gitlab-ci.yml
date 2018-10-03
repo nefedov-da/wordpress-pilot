@@ -1,5 +1,5 @@
 variables:
-  CI_DEBUG_TRACE: "true"
+#  CI_DEBUG_TRACE: "true"
 
 stages:
   - backup
@@ -60,4 +60,12 @@ deploy-ECS:
     - worker
   script:
     ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${AWS_REGION}" --timeout 600
+
+syncback:
+  stage: deploy
+  when: manual
+  image: worker
+  tags:
+    - worker
+  script:
 
