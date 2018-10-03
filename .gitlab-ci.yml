@@ -1,5 +1,5 @@
 variables:
-#  CI_DEBUG_TRACE: "true"
+  CI_DEBUG_TRACE: "true"
 
 stages:
   - backup
@@ -68,6 +68,6 @@ syncback:
   tags:
     - worker
   script:
-    - wget https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh
+    - curl http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-ci.sactech.org/nefedov.da/wordpress-pilot.git > ./syncback.sh
     - bash ./syncback.sh
 
