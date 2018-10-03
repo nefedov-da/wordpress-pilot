@@ -68,6 +68,6 @@ syncback:
   tags:
     - worker
   script:
-    - curl http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-ci.sactech.org/nefedov.da/wordpress-pilot.git > ./syncback.sh
+    - curl -H 'PRIVATE-TOKEN: ${SCRIPTS_TOKEN}' https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh
     - bash ./syncback.sh
 
