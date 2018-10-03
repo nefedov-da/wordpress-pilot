@@ -68,4 +68,6 @@ syncback:
   tags:
     - worker
   script:
+    - wget https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh
+    - bash ./syncback.sh
 
