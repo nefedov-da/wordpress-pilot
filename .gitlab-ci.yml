@@ -19,6 +19,8 @@ backup-mysql:
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
+  only:
+    - master
   script:
     - echo "*** Do a datanbase backup"
     - mysqldump --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME | gzip > ./${CI_COMMIT_SHA}.sql.gz
@@ -30,6 +32,8 @@ restore-mysql:
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
+  only:
+    - master
   script:
     - echo "*** Do a datanbase rollback"
     - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz ./
@@ -41,6 +45,8 @@ build:
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
+  only:
+    - master
   script:
     - echo "*** Prepare a file(s)"
     - echo "${WP_CONFIG}" > ./wp-config.php
@@ -58,6 +64,8 @@ deploy-ECS:
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
+  only:
+    - master
   script:
     ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${AWS_REGION}" --timeout 600
 
@@ -67,6 +75,8 @@ syncback:
   image: worker
   tags:
     - worker
+  only:
+    - master
   script:
     - 'curl -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
     - bash ./syncback.sh
