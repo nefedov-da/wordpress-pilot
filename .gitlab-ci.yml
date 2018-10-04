@@ -67,6 +67,9 @@ deploy-ECS:
     - worker
   only:
     - master
+  environment:
+    name: production
+
   script:
     ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${AWS_REGION}" --timeout 600
 
