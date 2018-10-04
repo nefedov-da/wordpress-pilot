@@ -78,6 +78,6 @@ syncback:
   only:
     - master
   script:
-    - 'curl -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
     - bash ./syncback.sh
 
