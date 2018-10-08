@@ -23,7 +23,7 @@ backup-mysql:
     - master
   script:
     - echo "*** Do a datanbase backup"
-    - mysqldump --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME | gzip > ./${CI_COMMIT_SHA}.sql.gz
+    - mysqldump --default-character-set=binary -h$WP_DB_HOST_PROD -u$WP_DB_USER_PROD -p$WP_DB_PASSWORD_PROD $WP_DB_NAME_PROD | gzip > ./${CI_COMMIT_SHA}.sql.gz
     - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz
 
 restore-mysql:
@@ -37,7 +37,7 @@ restore-mysql:
   script:
     - echo "*** Do a datanbase rollback"
     - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz ./
-    - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME
+    - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h$WP_DB_HOST_PROD -u$WP_DB_USER_PROD -p$WP_DB_PASSWORD_PROD $WP_DB_NAME_PROD
     
 clone-mysql:
   stage: backup
@@ -57,6 +57,12 @@ build-dev:
     - worker
   only:
     - master
+  variables:
+    WP_DB_HOST: ${WP_DB_HOST_DEV}
+    WP_DB_USER: ${WP_DB_USER_DEV}
+    WP_DB_PASSWORD: ${WP_DB_PASSWORD_DEV}
+    WP_DB_NAME: ${WP_DB_NAME_DEV}
+    IMAGE_TAG: dev
   script:
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
     - bash ./build-wordpress.sh
