@@ -48,7 +48,7 @@ clone-mysql-prod2dev:
   script:
     - echo "*** Do a hot datanbase clone Prod->Dev"
     - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | mysql --default-character-set=binary -h${WP_DB_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} -D ${WP_DB_NAME_DEV}
-    - /usr/local/srdb/srdb.cli.php -h${WP_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} -n${WP_DB_NAME_DEV} -s "${URL_PROD}" -r "${URL_DEV}"
+    - /usr/local/srdb/srdb.cli.php -h ${WP_DB_HOST_DEV} -u ${WP_DB_USER_DEV} -p ${WP_DB_PASSWORD_DEV} -n ${WP_DB_NAME_DEV} -s "${URL_PROD}" -r "${URL_DEV}"
 
 clone-mysql-dev2prod:
   stage: db
@@ -61,7 +61,7 @@ clone-mysql-dev2prod:
   script:
     - echo "*** Do a hot datanbase clone Prod->Dev"
     - mysqldump --default-character-set=binary -h${WP_DB_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} ${WP_DB_NAME_DEV} | mysql --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} -D ${WP_DB_NAME_PROD}
-    - /usr/local/srdb/srdb.cli.php -h${WP_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} -n${WP_DB_NAME_PROD} -s "${URL_DEV}" -r "${URL_PROD}"
+    - /usr/local/srdb/srdb.cli.php -h ${WP_DB_HOST_PROD} -u ${WP_DB_USER_PROD} -p ${WP_DB_PASSWORD_PROD} -n ${WP_DB_NAME_PROD} -s "${URL_DEV}" -r "${URL_PROD}"
 
 build-prod:
   stage: build
