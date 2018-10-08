@@ -64,7 +64,7 @@ build-dev:
     WP_DB_NAME: ${WP_DB_NAME_DEV}
     IMAGE_TAG: dev
   script:
-    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
     - bash ./build-wordpress.sh
 
 deploy-prod:
