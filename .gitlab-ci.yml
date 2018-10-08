@@ -72,22 +72,11 @@ build-prod:
   only:
     - master
   variables:
-    WP_DB_HOST: ${WP_DB_HOST_PROD}
-    WP_DB_USER: ${WP_DB_USER_PROD}
-    WP_DB_PASSWORD: ${WP_DB_PASSWORD_PROD}
-    WP_DB_NAME: ${WP_DB_NAME_PROD}
     IMAGE_TAG: prod
   script:
-    - echo "*** Prepare a file(s)"
-    - echo "${WP_CONFIG}" > ./wp-config.php
-    - cat ./wp-config.php
-    - git log --pretty=format:'%h %an(%ae) - %B' --abbrev-commit --date=short -1 > ./version.txt
-    - tar cf ./docker.tar ./ --exclude=docker.tar
-    - echo "*** Build a image"
-    - docker build -t "${IMAGE}:${IMAGE_TAG}" . 
-    - echo "*** Push a image to registry"
-    - docker push "${IMAGE}:${IMAGE_TAG}"
-    - docker rmi "${IMAGE}:${IMAGE_TAG}"
+    - export WP_CONFIG="${WP_CONFIG_PROD}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
+    - bash ./build-wordpress.sh
 
 build-dev:
   stage: build
@@ -96,24 +85,11 @@ build-dev:
   tags:
     - worker
   variables:
-    WP_DB_HOST: ${WP_DB_HOST_DEV}
-    WP_DB_USER: ${WP_DB_USER_DEV}
-    WP_DB_PASSWORD: ${WP_DB_PASSWORD_DEV}
-    WP_DB_NAME: ${WP_DB_NAME_DEV}
     IMAGE_TAG: dev
   script:
-    - export a="${WP_CONFIG}"
-    - echo "${a}"
-    - echo "*** Prepare a file(s)"
-    - echo "${WP_CONFIG}" > ./wp-config.php
-    - cat ./wp-config.php
-    - git log --pretty=format:'%h %an(%ae) - %B' --abbrev-commit --date=short -1 > ./version.txt
-    - tar cf ./docker.tar ./ --exclude=docker.tar
-    - echo "*** Build a image"
-    - docker build -t "${IMAGE}:${IMAGE_TAG}" . 
-    - echo "*** Push a image to registry"
-    - docker push "${IMAGE}:${IMAGE_TAG}"
-    - docker rmi "${IMAGE}:${IMAGE_TAG}"
+    - export WP_CONFIG="${WP_CONFIG_DEV}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
+    - bash ./build-wordpress.sh
 
 deploy-prod:
   stage: deploy
