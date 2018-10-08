@@ -38,8 +38,18 @@ restore-mysql:
     - echo "*** Do a datanbase rollback"
     - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz ./
     - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h$WP_DB_HOST -u$WP_DB_USER -p$WP_DB_PASSWORD $WP_DB_NAME
+    
+clone-mysql:
+  stage: backup
+  when: manual
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
+  tags:
+    - worker
+  script:
+    - echo "*** Do a hot datanbase clone Prod->Dev"
+    - mysqldump --default-character-set=binary -h$WP_DB_HOST_PROD -u$WP_DB_USER_PROD -p$WP_DB_PASSWORD_PROD $WP_DB_NAME_PROD | mysql --default-character-set=binary -h$WP_DB_HOST_DEV -u$WP_DB_USER_DEV -p$WP_DB_PASSWORD_DEV -D $WP_DB_NAME_DEV
 
-build:
+build-dev:
   stage: build
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
