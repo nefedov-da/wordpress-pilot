@@ -72,10 +72,10 @@ build-prod:
   only:
     - master
   variables:
-    WP_DB_HOST: ${WP_DB_HOST_PROD}
-    WP_DB_USER: ${WP_DB_USER_PROD}
-    WP_DB_PASSWORD: ${WP_DB_PASSWORD_PROD}
-    WP_DB_NAME: ${WP_DB_NAME_PROD}
+    WP_DB_HOST: $WP_DB_HOST_PROD
+    WP_DB_USER: $WP_DB_USER_PROD
+    WP_DB_PASSWORD: $WP_DB_PASSWORD_PROD
+    WP_DB_NAME: $WP_DB_NAME_PROD
     IMAGE_TAG: prod
   script:
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
@@ -88,10 +88,10 @@ build-dev:
   tags:
     - worker
   variables:
-    WP_DB_HOST: ${WP_DB_HOST_DEV}
-    WP_DB_USER: ${WP_DB_USER_DEV}
-    WP_DB_PASSWORD: ${WP_DB_PASSWORD_DEV}
-    WP_DB_NAME: ${WP_DB_NAME_DEV}
+    WP_DB_HOST: $WP_DB_HOST_DEV
+    WP_DB_USER: $WP_DB_USER_DEV
+    WP_DB_PASSWORD: $WP_DB_PASSWORD_DEV
+    WP_DB_NAME: $WP_DB_NAME_DEV
     IMAGE_TAG: dev
   script:
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
