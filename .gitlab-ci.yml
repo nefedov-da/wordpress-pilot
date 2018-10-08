@@ -13,7 +13,7 @@ before_script:
   - echo "${AWS_credentials}" > ~/.aws/credentials
   - '$(aws ecr get-login --no-include-email)'  
 
-backup-mysql-prod:
+backup-db-prod:
   stage: db
   when: always
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
@@ -26,7 +26,7 @@ backup-mysql-prod:
     - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | gzip > ./${CI_COMMIT_SHA}.sql.gz
     - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz
 
-restore-mysql-prod:
+restore-db-prod:
   stage: db
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
@@ -39,7 +39,7 @@ restore-mysql-prod:
     - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz ./
     - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD}
     
-clone-mysql-prod2dev:
+clone-db-prod2dev:
   stage: db
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
@@ -50,7 +50,7 @@ clone-mysql-prod2dev:
     - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | mysql --default-character-set=binary -h${WP_DB_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} -D ${WP_DB_NAME_DEV}
     - /usr/local/srdb/srdb.cli.php -h ${WP_DB_HOST_DEV} -u ${WP_DB_USER_DEV} -p ${WP_DB_PASSWORD_DEV} -n ${WP_DB_NAME_DEV} -s "${URL_PROD}" -r "${URL_DEV}"
 
-clone-mysql-dev2prod:
+clone-db-dev2prod:
   stage: db
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
