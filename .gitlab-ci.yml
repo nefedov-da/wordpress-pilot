@@ -48,18 +48,10 @@ build:
   only:
     - master
   script:
-    - echo "*** Prepare a file(s)"
-    - echo "${WP_CONFIG}" > ./wp-config.php
-    - cat ./wp-config.php
-    - git log --pretty=format:'%h %an(%ae) - %B' --abbrev-commit --date=short -1 > ./version.txt
-    - tar cf ./docker.tar ./ --exclude=docker.tar
-    - echo "*** Build a image"
-    - docker build -t "${IMAGE}" . 
-    - echo "*** Push a image to registry"
-    - docker push "${IMAGE}"
-    - docker rmi "${IMAGE}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
+    - bash ./build-wordpress.sh
 
-deploy-ECS:
+deploy-prod:
   stage: deploy
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
@@ -69,7 +61,6 @@ deploy-ECS:
     - master
   environment:
     name: production
-
   script:
     ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${AWS_REGION}" --timeout 600
 
