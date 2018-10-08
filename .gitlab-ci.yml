@@ -2,7 +2,7 @@ variables:
 #  CI_DEBUG_TRACE: "true"
 
 stages:
-  - backup
+  - db
   - build
   - deploy
 
@@ -13,8 +13,8 @@ before_script:
   - echo "${AWS_credentials}" > ~/.aws/credentials
   - '$(aws ecr get-login --no-include-email)'  
 
-backup-mysql:
-  stage: backup
+backup-mysql-prod:
+  stage: db
   when: always
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
@@ -23,11 +23,11 @@ backup-mysql:
     - master
   script:
     - echo "*** Do a datanbase backup"
-    - mysqldump --default-character-set=binary -h$WP_DB_HOST_PROD -u$WP_DB_USER_PROD -p$WP_DB_PASSWORD_PROD $WP_DB_NAME_PROD | gzip > ./${CI_COMMIT_SHA}.sql.gz
+    - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | gzip > ./${CI_COMMIT_SHA}.sql.gz
     - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz
 
-restore-mysql:
-  stage: backup
+restore-mysql-prod:
+  stage: db
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
@@ -37,19 +37,33 @@ restore-mysql:
   script:
     - echo "*** Do a datanbase rollback"
     - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz ./
-    - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h$WP_DB_HOST_PROD -u$WP_DB_USER_PROD -p$WP_DB_PASSWORD_PROD $WP_DB_NAME_PROD
+    - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD}
     
-clone-mysql:
-  stage: backup
+clone-mysql-prod2dev:
+  stage: db
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
   tags:
     - worker
   script:
     - echo "*** Do a hot datanbase clone Prod->Dev"
-    - mysqldump --default-character-set=binary -h$WP_DB_HOST_PROD -u$WP_DB_USER_PROD -p$WP_DB_PASSWORD_PROD $WP_DB_NAME_PROD | mysql --default-character-set=binary -h$WP_DB_HOST_DEV -u$WP_DB_USER_DEV -p$WP_DB_PASSWORD_DEV -D $WP_DB_NAME_DEV
+    - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | mysql --default-character-set=binary -h${WP_DB_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} -D ${WP_DB_NAME_DEV}
+    - /usr/local/srdb/srdb.cli.php -h${WP_HOST_DEV} -u${WP_USER_DEV} -p${WP_DB_PASSWORD_DEV} -n${WP_DB_NAME_DEV} -s "${URL_PROD}" -r "${URL_DEV}"
 
-build-dev:
+clone-mysql-dev2prod:
+  stage: db
+  when: manual
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
+  tags:
+    - worker
+  only:
+    - master
+  script:
+    - echo "*** Do a hot datanbase clone Prod->Dev"
+    - mysqldump --default-character-set=binary -h${WP_DB_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} ${WP_DB_NAME_DEV} | mysql --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} -D ${WP_DB_NAME_PROD}
+    - /usr/local/srdb/srdb.cli.php -h${WP_HOST_PROD} -u${WP_USER_PROD} -p${WP_DB_PASSWORD_PROD} -n${WP_DB_NAME_PROD} -s "${URL_DEV}" -r "${URL_PROD}"
+
+build-prod:
   stage: build
   when: manual
   image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
@@ -57,6 +71,22 @@ build-dev:
     - worker
   only:
     - master
+  variables:
+    WP_DB_HOST: ${WP_DB_HOST_PROD}
+    WP_DB_USER: ${WP_DB_USER_PROD}
+    WP_DB_PASSWORD: ${WP_DB_PASSWORD_PROD}
+    WP_DB_NAME: ${WP_DB_NAME_PROD}
+    IMAGE_TAG: prod
+  script:
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
+    - bash ./build-wordpress.sh
+
+build-dev:
+  stage: build
+  when: manual
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
+  tags:
+    - worker
   variables:
     WP_DB_HOST: ${WP_DB_HOST_DEV}
     WP_DB_USER: ${WP_DB_USER_DEV}
@@ -77,10 +107,23 @@ deploy-prod:
     - master
   environment:
     name: production
+    url: ${URL_PROD}
   script:
-    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER}" --service-name "${ECS_SERVICE}" --image "${IMAGE}" --region "${AWS_REGION}" --timeout 600
+    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_PROD}" --service-name "${ECS_SERVICE_PROD}" --image "${IMAGE}:prod" --region "${AWS_REGION}" --timeout 600
 
-syncback:
+deploy-dev:
+  stage: deploy
+  when: manual
+  image: 257040594755.dkr.ecr.eu-west-1.amazonaws.com/worker:latest
+  tags:
+    - worker
+  environment:
+    name: development
+    url: ${URL_DEV}
+  script:
+    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_DEV}" --service-name "${ECS_SERVICE_DEV}" --image "${IMAGE}:dev" --region "${AWS_REGION}" --timeout 600
+
+syncback-prod:
   stage: deploy
   when: manual
   image: worker
@@ -91,4 +134,3 @@ syncback:
   script:
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
     - bash ./syncback.sh
-
