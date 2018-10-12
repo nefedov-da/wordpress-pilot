@@ -5,6 +5,7 @@ stages:
   - db
   - build
   - deploy
+  - life
 
 before_script:
   - echo "*** Setup access credentials"
@@ -118,7 +119,7 @@ deploy-dev:
     ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_DEV}" --service-name "${ECS_SERVICE_DEV}" --image "${IMAGE}:dev" --region "${AWS_REGION}" --timeout 600
 
 syncback-prod:
-  stage: deploy
+  stage: life
   when: manual
   image: worker
   tags:
@@ -126,5 +127,20 @@ syncback-prod:
   only:
     - master
   script:
+    - export ECS_SERVICE="${ECS_SERVICE_PROD}"
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
     - bash ./syncback.sh
+
+stop-dev:
+  stage: life
+  when: manual
+  image: worker
+  tags:
+    - worker
+  only:
+    - master
+  script:
+    - export ECS_CLUSTER="${ECS_CLUSTER_DEV}"
+    - export ECS_SERVICE="${ECS_SERVICE_DEV}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./stop-env.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/stop-env.sh'
+    - bash ./stop-env.sh
