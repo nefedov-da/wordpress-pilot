@@ -131,7 +131,7 @@ syncback-prod:
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
     - bash ./syncback.sh
 
-stop-dev:
+stop-prod:
   stage: life
   when: manual
   image: worker
@@ -140,7 +140,34 @@ stop-dev:
   only:
     - master
   script:
-    - export ECS_CLUSTER="${ECS_CLUSTER_DEV}"
-    - export ECS_SERVICE="${ECS_SERVICE_DEV}"
-    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./stop-env.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/stop-env.sh'
-    - bash ./stop-env.sh
+    - aws ecs update-service --cluster "${ECS_CLUSTER_PROD}" --service "${ECS_SERVICE_PROD}" --desired-count 0 --deployment-configuration '{"maximumPercent":100,"minimumHealthyPercent":50}'
+
+start-prod:
+  stage: life
+  when: manual
+  image: worker
+  tags:
+    - worker
+  only:
+    - master
+  script:
+    - aws ecs update-service --cluster "${ECS_CLUSTER_PROD}" --service "${ECS_SERVICE_PROD}" --desired-count 1 --deployment-configuration '{"maximumPercent":200,"minimumHealthyPercent":100}'
+
+stop-dev:
+  stage: life
+  when: manual
+  image: worker
+  tags:
+    - worker
+  script:
+    - aws ecs update-service --cluster "${ECS_CLUSTER_DEV}" --service "${ECS_SERVICE_DEV}" --desired-count 0 --deployment-configuration '{"maximumPercent":100,"minimumHealthyPercent":50}'
+
+start-dev:
+  stage: life
+  when: manual
+  image: worker
+  tags:
+    - worker
+  script:
+    - aws ecs update-service --cluster "${ECS_CLUSTER_DEV}" --service "${ECS_SERVICE_DEV}" --desired-count 1 --deployment-configuration '{"maximumPercent":200,"minimumHealthyPercent":100}'
+
