@@ -2,10 +2,28 @@ variables:
 #  CI_DEBUG_TRACE: "true"
 
 stages:
+  - test
   - db
   - build
   - deploy
   - life
+
+build-prod:
+  stage: test
+  when: manual
+  image: worker
+  tags:
+    - worker
+  only:
+    - master
+  variables:
+    ENVTEST: "task"
+  script:
+    - echo "${ENVTEST}"
+    - export ENVTEST="ci script"
+    - echo "${ENVTEST}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/envtest.sh'
+    - bash ./envtest.sh
 
 before_script:
   - echo "*** Setup access credentials"
