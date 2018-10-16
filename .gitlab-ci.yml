@@ -19,9 +19,9 @@ envtest:
   variables:
     ENVTEST: "task"
   script:
-    - echo "${ENVTEST}"
-    - export ENVTEST="ci script"
-    - echo "${ENVTEST}"
+#    - echo "${ENVTEST}"
+#    - export ENVTEST="ci script"
+#    - echo "${ENVTEST}"
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./envtest.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/envtest.sh'
     - bash ./envtest.sh
 
