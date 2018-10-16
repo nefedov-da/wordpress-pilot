@@ -8,7 +8,7 @@ stages:
   - deploy
   - life
 
-build-prod:
+envtest:
   stage: test
   when: manual
   image: worker
