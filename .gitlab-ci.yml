@@ -11,7 +11,7 @@ stages:
 envtest:
   stage: test
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -35,7 +35,7 @@ before_script:
 backup-db-prod:
   stage: db
   when: always
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -48,7 +48,7 @@ backup-db-prod:
 restore-db-prod:
   stage: db
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -61,7 +61,7 @@ restore-db-prod:
 clone-db-prod2dev:
   stage: db
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   script:
@@ -72,7 +72,7 @@ clone-db-prod2dev:
 clone-db-dev2prod:
   stage: db
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -85,7 +85,7 @@ clone-db-dev2prod:
 build-prod:
   stage: build
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -100,7 +100,7 @@ build-prod:
 build-dev:
   stage: build
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   variables:
@@ -113,7 +113,7 @@ build-dev:
 deploy-prod:
   stage: deploy
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -127,7 +127,7 @@ deploy-prod:
 deploy-dev:
   stage: deploy
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   environment:
@@ -139,7 +139,7 @@ deploy-dev:
 syncback-prod:
   stage: life
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -152,7 +152,7 @@ syncback-prod:
 stop-prod:
   stage: life
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -163,7 +163,7 @@ stop-prod:
 start-prod:
   stage: life
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   only:
@@ -174,7 +174,7 @@ start-prod:
 stop-dev:
   stage: life
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   script:
@@ -183,7 +183,7 @@ stop-dev:
 start-dev:
   stage: life
   when: manual
-  image: worker
+  image: gitlab-worker
   tags:
     - worker
   script:
