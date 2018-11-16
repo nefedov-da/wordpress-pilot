@@ -8,6 +8,13 @@ stages:
   - deploy
   - life
 
+before_script:
+  - echo "*** Setup access credentials"
+#  - mkdir ~/.aws
+  - echo "${AWS_config}"      > ~/.aws/config
+  - echo "${AWS_credentials}" > ~/.aws/credentials
+  - '$(aws ecr get-login --no-include-email)'  
+  
 envtest:
   stage: test
   when: manual
@@ -25,16 +32,9 @@ envtest:
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./envtest.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/envtest.sh'
     - bash ./envtest.sh
 
-before_script:
-  - echo "*** Setup access credentials"
-#  - mkdir ~/.aws
-  - echo "${AWS_config}"      > ~/.aws/config
-  - echo "${AWS_credentials}" > ~/.aws/credentials
-  - '$(aws ecr get-login --no-include-email)'  
-
 backup-db-prod:
   stage: db
-  when: always
+  when: manual
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
