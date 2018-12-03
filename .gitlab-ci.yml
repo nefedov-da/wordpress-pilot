@@ -2,66 +2,44 @@ variables:
 #  CI_DEBUG_TRACE: "true"
 
 stages:
-  - test
   - db
   - build
   - deploy
   - life
 
-envtest:
-  stage: test
-  when: manual
-  image: gitlab-worker
-  tags:
-    - worker
-  only:
-    - master
-  variables:
-    ENVTEST: "task"
-  script:
-#    - echo "${ENVTEST}"
-#    - export ENVTEST="ci script"
-#    - echo "${ENVTEST}"
-    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./envtest.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/envtest.sh'
-    - bash ./envtest.sh
-
 before_script:
-  - echo "*** Setup access credentials"
-  - mkdir ~/.aws
-  - echo "${AWS_config}"      > ~/.aws/config
-  - echo "${AWS_credentials}" > ~/.aws/credentials
-  - '$(aws ecr get-login --no-include-email)'  
+  - export COMMIT=`echo ${CI_COMMIT_SHA} | cut -c 1-8`
 
 backup-db-prod:
   stage: db
   when: always
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
     - master
   script:
     - echo "*** Do a datanbase backup"
-    - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | gzip > ./${CI_COMMIT_SHA}.sql.gz
-    - aws s3 cp ./${CI_COMMIT_SHA}.sql.gz s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz
+    - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | gzip > ./${COMMIT}.sql.gz
+    - aws s3 cp ./${COMMIT}.sql.gz s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${COMMIT}.sql.gz
 
 restore-db-prod:
   stage: db
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
     - master
   script:
     - echo "*** Do a datanbase rollback"
-    - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_SHA}.sql.gz ./
-    - cat ./${CI_COMMIT_SHA}.sql.gz | gunzip | mysql --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD}
-    
+    - aws s3 cp s3://${DB_BACKUP_S3}/${CI_PROJECT_PATH_SLUG}/${COMMIT}.sql.gz ./
+    - cat ./${COMMIT}.sql.gz | gunzip | mysql --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD}
+
 clone-db-prod2dev:
   stage: db
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   script:
@@ -72,7 +50,7 @@ clone-db-prod2dev:
 clone-db-dev2prod:
   stage: db
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
@@ -85,35 +63,31 @@ clone-db-dev2prod:
 build-prod:
   stage: build
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
     - master
-  variables:
-    IMAGE_TAG: prod
   script:
     - export WP_CONFIG="${WP_CONFIG_PROD}"
-    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
-    - bash ./build-wordpress.sh
+    - export IMAGE_TAG="prod-${COMMIT}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/build-wordpress.sh/raw?ref=master | bash'
 
 build-dev:
   stage: build
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
-  variables:
-    IMAGE_TAG: dev
   script:
     - export WP_CONFIG="${WP_CONFIG_DEV}"
-    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./build-wordpress.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/build-wordpress.sh'
-    - bash ./build-wordpress.sh
+    - export IMAGE_TAG="dev-${COMMIT}"
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/build-wordpress.sh/raw?ref=master | bash'
 
 deploy-prod:
   stage: deploy
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
@@ -127,7 +101,7 @@ deploy-prod:
 deploy-dev:
   stage: deploy
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   environment:
@@ -139,20 +113,19 @@ deploy-dev:
 syncback-prod:
   stage: life
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
     - master
   script:
     - export ECS_SERVICE="${ECS_SERVICE_PROD}"
-    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" -o ./syncback.sh https://gitlab-ci.sactech.org/admins/scripts/raw/master/syncback.sh'
-    - bash ./syncback.sh
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/syncback-fargate.sh/raw?ref=master | bash'
 
 stop-prod:
   stage: life
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
@@ -163,7 +136,7 @@ stop-prod:
 start-prod:
   stage: life
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   only:
@@ -174,7 +147,7 @@ start-prod:
 stop-dev:
   stage: life
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   script:
@@ -183,9 +156,8 @@ stop-dev:
 start-dev:
   stage: life
   when: manual
-  image: gitlab-worker
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
   script:
     - aws ecs update-service --cluster "${ECS_CLUSTER_DEV}" --service "${ECS_SERVICE_DEV}" --desired-count 1 --deployment-configuration '{"maximumPercent":200,"minimumHealthyPercent":100}'
-
