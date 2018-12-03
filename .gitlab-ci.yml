@@ -98,7 +98,7 @@ deploy-prod:
     name: production
     url: ${URL_PROD}
   script:
-    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_PROD}" --service-name "${ECS_SERVICE_PROD}" --image "${IMAGE}:prod" --region "${AWS_REGION}" --timeout 600
+    - ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_PROD}" --service-name "${ECS_SERVICE_PROD}" --image "any" --tag-only "prod-${COMMIT}" --region "${AWS_DEFAULT_REGION}" --timeout 600
 
 deploy-dev:
   stage: deploy
@@ -110,7 +110,7 @@ deploy-dev:
     name: development
     url: ${URL_DEV}
   script:
-    ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_DEV}" --service-name "${ECS_SERVICE_DEV}" --image "${IMAGE}:dev" --region "${AWS_REGION}" --timeout 600
+    - ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_DEV}" --service-name "${ECS_SERVICE_DEV}" --image "any" --tag-only "dev-${COMMIT}" --region "${AWS_DEFAULT_REGION}" --timeout 600
 
 syncback-prod:
   stage: life
