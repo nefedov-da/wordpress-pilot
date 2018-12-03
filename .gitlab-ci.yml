@@ -71,6 +71,7 @@ build-prod:
   script:
     - export WP_CONFIG="${WP_CONFIG_PROD}"
     - export IMAGE_TAG="prod-${COMMIT}"
+    - export REPOSITORY="wp-pilot"
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/build-wordpress.sh/raw?ref=master | bash'
 
 build-dev:
@@ -82,6 +83,7 @@ build-dev:
   script:
     - export WP_CONFIG="${WP_CONFIG_DEV}"
     - export IMAGE_TAG="dev-${COMMIT}"
+    - export REPOSITORY="wp-pilot"
     - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/build-wordpress.sh/raw?ref=master | bash'
 
 deploy-prod:
