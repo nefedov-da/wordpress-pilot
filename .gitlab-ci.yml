@@ -13,6 +13,7 @@ before_script:
 backup-db-prod:
   stage: db
   when: always
+  allow_failure: yes
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
