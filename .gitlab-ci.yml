@@ -168,6 +168,9 @@ start-dev:
 github-release:
   stage: deploy
   when: always
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
+  tags:
+    - worker
   only:
     - release
   script:
