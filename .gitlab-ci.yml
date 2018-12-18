@@ -43,6 +43,8 @@ clone-db-prod2dev:
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
+  only:
+    - master
   script:
     - echo "*** Do a hot datanbase clone Prod->Dev"
     - mysqldump --default-character-set=binary -h${WP_DB_HOST_PROD} -u${WP_DB_USER_PROD} -p${WP_DB_PASSWORD_PROD} ${WP_DB_NAME_PROD} | mysql --default-character-set=binary -h${WP_DB_HOST_DEV} -u${WP_DB_USER_DEV} -p${WP_DB_PASSWORD_DEV} -D ${WP_DB_NAME_DEV}
@@ -81,6 +83,8 @@ build-dev:
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
+  only:
+    - master
   script:
     - export WP_CONFIG="${WP_CONFIG_DEV}"
     - export IMAGE_TAG="dev-${COMMIT}"
@@ -107,6 +111,8 @@ deploy-dev:
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
+  only:
+    - master
   environment:
     name: development
     url: ${URL_DEV}
@@ -153,6 +159,8 @@ stop-dev:
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
+  only:
+    - master
   script:
     - aws ecs update-service --cluster "${ECS_CLUSTER_DEV}" --service "${ECS_SERVICE_DEV}" --desired-count 0 --deployment-configuration '{"maximumPercent":100,"minimumHealthyPercent":50}'
 
@@ -162,6 +170,8 @@ start-dev:
   image: ${CI_REGISTRY}/admins/images/gitlab-worker
   tags:
     - worker
+  only:
+    - master
   script:
     - aws ecs update-service --cluster "${ECS_CLUSTER_DEV}" --service "${ECS_SERVICE_DEV}" --desired-count 1 --deployment-configuration '{"maximumPercent":200,"minimumHealthyPercent":100}'
 
