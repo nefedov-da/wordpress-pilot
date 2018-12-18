@@ -164,3 +164,14 @@ start-dev:
     - worker
   script:
     - aws ecs update-service --cluster "${ECS_CLUSTER_DEV}" --service "${ECS_SERVICE_DEV}" --desired-count 1 --deployment-configuration '{"maximumPercent":200,"minimumHealthyPercent":100}'
+
+github-release:
+  stage: deploy
+  when: always
+  image: ${CI_REGISTRY}/admins/images/gitlab-worker
+  tags:
+    - worker
+  only:
+    - release
+  script:
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/github-release.sh/raw?ref=master | bash'
