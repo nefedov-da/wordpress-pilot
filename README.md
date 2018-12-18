@@ -1,0 +1,2 @@
+# wordpress-pilot
+sync test
