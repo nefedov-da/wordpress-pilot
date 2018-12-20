@@ -118,6 +118,7 @@ deploy-dev:
     url: ${URL_DEV}
   script:
     - ecs-deploy --use-latest-task-def --cluster "${ECS_CLUSTER_DEV}" --service-name "${ECS_SERVICE_DEV}" --image "any" --tag-only "dev-${COMMIT}" --region "${AWS_DEFAULT_REGION}" --timeout 600
+    - 'curl -s -H "PRIVATE-TOKEN: ${SCRIPTS_TOKEN}" https://gitlab-ci.sactech.org/api/v4/projects/7/repository/files/update-domains.sh/raw?ref=master | bash'
 
 syncback-prod:
   stage: life
