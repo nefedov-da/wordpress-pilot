@@ -185,7 +185,8 @@ github-release:
   tags:
     - worker
   only:
-    - release
+    refs:
+      - release
     variables:
       - $RELEASE_PUSH_ENABLED == "YES"
   script:
